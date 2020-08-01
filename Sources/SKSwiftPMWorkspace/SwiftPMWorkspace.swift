@@ -24,6 +24,7 @@ import SourceControl
 import SKCore
 import SKSupport
 import Workspace
+import Foundation
 import Dispatch
 import struct Foundation.URL
 
@@ -87,11 +88,14 @@ public final class SwiftPMWorkspace {
 
     let buildPath: AbsolutePath = buildSetup.path ?? packageRoot.appending(component: ".build")
 
+    let cachePathString = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?.path
+    let cachePath = cachePathString.map{ AbsolutePath($0).appending(component: "org.swift.swiftpm") } ?? buildPath
+
     self.workspace = Workspace(
       dataPath: buildPath,
       editablesPath: packageRoot.appending(component: "Packages"),
       pinsFile: packageRoot.appending(component: "Package.resolved"),
-      manifestLoader: ManifestLoader(manifestResources: toolchain.manifestResources, cacheDir: buildPath),
+      manifestLoader: ManifestLoader(manifestResources: toolchain.manifestResources, cacheDir: cachePath),
       delegate: BuildSettingProviderWorkspaceDelegate(),
       config: SwiftPMConfig(path: packageRoot.appending(components: ".swiftpm", "config"), fs: fileSystem),
       fileSystem: fileSystem,
